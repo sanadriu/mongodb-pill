@@ -215,6 +215,21 @@ db.books.find({ releaseYear: { $lt: 2002 } });
 
 db.books.find({ "authors.1": { $exists: true } });
 db.books.find({ $where: "this.authors.length > 1" });
+db.books.aggregate([
+	{
+		$set: {
+			numAuthors: { $cond: { if: { $isArray: "$authors" }, then: { $size: "$authors" }, else: 0 } },
+		},
+	},
+	{
+		$match: {
+			numAuthors: { $gt: 1 },
+		},
+	},
+	{
+		$unset: "numAuthors",
+	},
+]);
 
 // Select all authors
 
