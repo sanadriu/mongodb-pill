@@ -107,70 +107,70 @@ db.books.insertMany([
 	{
 		_id: 1,
 		title: "nunc sed libero.",
-		releaseDate: new Date("2016-04-26"),
+		releaseYear: [2016],
 		category: "Non fiction",
-		authors: [],
+		authors: [1],
 	},
 	{
 		_id: 2,
 		title: "vel,",
-		releaseDate: new Date("2016-01-07"),
+		releaseYear: [2016],
 		category: "Fantasy",
 		authors: [9, 3],
 	},
 	{
 		_id: 3,
 		title: "auctor, nunc nulla",
-		releaseDate: new Date("2011-02-15"),
+		releaseYear: [2011],
 		category: "Fiction",
 		authors: [3, 4, 2],
 	},
 	{
 		_id: 4,
 		title: "egestas hendrerit neque.",
-		releaseDate: new Date("2012-08-20"),
+		releaseYear: [2012],
 		category: "Drama",
-		authors: [],
+		authors: [1],
 	},
 	{
 		_id: 5,
 		title: "elementum, lorem",
-		releaseDate: new Date("2001-07-18"),
+		releaseYear: [2001],
 		category: "Fiction",
 		authors: [6, 10, 3],
 	},
 	{
 		_id: 6,
 		title: "Sed id risus",
-		releaseDate: new Date("2000-11-16"),
+		releaseYear: [2012],
 		category: "Fantasy",
 		authors: [8, 1],
 	},
 	{
 		_id: 7,
 		title: "mauris blandit",
-		releaseDate: new Date("2014-11-29"),
+		releaseYear: [2001, 2002, 2004],
 		category: "Drama",
 		authors: [4, 10, 8],
 	},
 	{
 		_id: 8,
 		title: "nisi",
-		releaseDate: new Date("2013-11-19"),
+		releaseYear: [2001, 2003, 2005],
 		category: "Drama",
 		authors: [7],
 	},
 	{
 		_id: 9,
 		title: "sit amet ultricies sem",
-		releaseDate: new Date("2017-01-29"),
+		releaseYear: [2009],
 		category: "Non fiction",
 		authors: [8, 3],
 	},
 	{
 		_id: 10,
 		title: "vulputate, posuere",
-		releaseDate: new Date("2012-11-22"),
+		releaseYear: [2013],
 		category: "Fiction",
 		authors: [8],
 	},
@@ -184,12 +184,12 @@ db.authors.update({ _id: 10 }, { $set: { dateOfDeath: new Date() } });
 
 // Add a new release year to a book
 
-db.books.update({ _id: 1 }, { $set: { releaseDate: new Date("2000") } });
+db.books.update({ _id: 1 }, { $push: { releaseYear: 2000 } });
 
 // Change the title of a book adding (“New Edition”)
 
 db.books.update(
-	{ _id: 1 },
+	{ _id: 1, title: { $not: { $regex: /New edition$/i } } },
 	{
 		$set: {
 			title: `${db.books.find({ _id: 1 }, { title: 1, _id: 0 }).next().title} New edition`,
@@ -209,25 +209,12 @@ db.books.find({ category: "Fiction" });
 
 // Select all books published before 2002
 
-db.books.find({ releaseDate: { $lt: new Date("2002") } });
+db.books.find({ releaseYear: { $lt: 2002 } });
 
 // Select all books with more than one author
 
-db.books.aggregate([
-	{
-		$set: {
-			numAuthors: { $cond: { if: { $isArray: "$authors" }, then: { $size: "$authors" }, else: 0 } },
-		},
-	},
-	{
-		$match: {
-			numAuthors: { $gt: 1 },
-		},
-	},
-	{
-		$unset: "numAuthors",
-	},
-]);
+db.books.find({ "authors.1": { $exists: true } });
+db.books.find({ $where: "this.authors.length > 1" });
 
 // Select all authors
 
